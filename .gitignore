@@ -13,3 +13,7 @@
 
 # Mapping files
 *.map
+
+# SLURM output files
+*.out
+*.log
