@@ -17,3 +17,6 @@
 # SLURM output files
 *.out
 *.log
+
+# Other files
+*.txt
