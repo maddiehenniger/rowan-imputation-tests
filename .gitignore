@@ -1,0 +1,12 @@
+# Database files
+*.bcf
+*.csi
+
+# Sample files
+*.bed
+*.bim
+*.fam
+*.fastq
+
+# General zipped files
+*.gz
