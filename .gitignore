@@ -10,3 +10,6 @@
 
 # General zipped files
 *.gz
+
+# Mapping files
+*.map
