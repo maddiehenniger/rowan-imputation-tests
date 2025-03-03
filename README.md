@@ -123,14 +123,16 @@ imp5Chunker_v1.2.0_static \
 
 The `IMPUTE5` documentation recommends that you create a XCF file for each chromosome in order to perform imputation on different chunks of the chromosome. You can also optionally convert the target panel to the XCF file format, but check for different output options.
 
-For this, we will specify `--i` for the input file in VCF/BCF format with associated index file, `--r` will be the region containing the whole imputation region (generally a chromosome number), `--o` is the output file name, `-O` is the output encoding (sh, sparse haplotypes for ref panel; bh, binary haplotypes for SNP array phased dat;, or bcf, converts XCF back to BCF). We then also have the `-m` argument, which is the sparse MAF threshold to use for the sparse haplotype reference panel file. The `IMPUTE5` documentation states: "For reference panels used with `IMPUTE5`, please always use `-m 0.03125`, representing the optimal value in SNP array imputation settings." Please note that this value for `--m` is not the default value (the default is 0.001), so it must be included to specify.
+For this, we will specify `--input` for the input file in VCF/BCF format with associated index file, `--region` will be the region containing the whole imputation region (generally a chromosome number), `--output` is the output file name, `--format` is the output encoding (sh, sparse haplotypes for ref panel; bh, binary haplotypes for SNP array phased dat;, or bcf, converts XCF back to BCF). We then also have the `--maf` (`-m`) argument, which is the sparse MAF threshold to use for the sparse haplotype reference panel file. The `IMPUTE5` documentation states: "For reference panels used with `IMPUTE5`, please always use `-m 0.03125`, representing the optimal value in SNP array imputation settings." Please note that this value for `--m` is not the default value (the default is 0.001), so it must be included to specify. We also specify the number of threads with `--thread` and where to output the log file with `--log`. 
 
 ```
-xcftools_static view -i databases/MU_HD_only.chr25.bcf \
--o databases/MU_HD_only.chr25_xcf.bcf \
--O sh \
--r 25 \
--T8 \
--m 0.03125
+xcftools_static view \
+--input databases/MU_HD_only.chr25.bcf \
+--output databases/MU_HD_only.chr25_xcf.bcf \
+--format sh \
+--region 25 \
+--thread 8 \
+--maf 0.03125 \
+--log stats/xcf_log.out
 ```
 
