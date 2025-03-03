@@ -162,11 +162,26 @@ done < imputation/phased_snp50_testing_animals_seq_chunked_coords.txt
 
 #### Ligation step
 
-We now need to join the several imputed files we generated. According the the documentation: "The simplest way to ligate imputated chunks back is using `bcftools concat` providing the list of files in the right order." The thing about this bit is that it must "be in the right order". I originally had saved all the file names with the regions, but this makes generating a list "in the right order" kinda annoying. So, instead I went back and changed it to print the chromosome (because I anticipate more chromosomes in our future) and then, the first column is a count column, so it prints that also, which we can either inspect the log file or look back on our chunked coordinates TXT file if we need to reference the specific region. This essentially should print everything in order, since the chunked coordinates file is organized "in order". 
+We now need to join the several imputed files we generated. According the the documentation: "The simplest way to ligate imputated chunks back is using `bcftools concat` providing the list of files in the right order." The thing about this bit is that it must "be in the right order". I originally had saved all the file names with the regions, but this makes generating a list "in the right order" kinda annoying. So, instead I went back and changed it to print the chromosome (because I anticipate more chromosomes in our future) and then, the first column is a count column, so it prints that also, which we can either inspect the log file or look back on our chunked coordinates TXT file if we need to reference the specific region. This essentially should print everything in order, since the chunked coordinates file is organized "in order". Note that this may be entirely messed up if there are >10 numbers, need to test later.
+
+We can then run `bcftools concat` to put together all of these from a TXT file of the list of chunked, imputed samples. First, we'll make the list of everything in order.
 
 ```
+ls imputation/*bcf >> imputation/imputed_phased_snp50_file_names.txt
+```
+
+We can look at this file to validate that it's "in order" (for example, using `less`; note: you press `q` to exit `less`).
+
+Now to run `bcftools concat`. 
 
 ```
+singularity exec https://depot.galaxyproject.org/singularity/bcftools:1.21--h8b25389_0 bcftools concat \
+-n \
+-f imputation/imputed_phased_snp50_file_names.txt \
+-Ob \
+-o imputation/ligated/ligated_imputed_phased_snp50_testing_animals_seq.chr25.bcf
+```
+
 
 
 
