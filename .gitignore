@@ -7,6 +7,7 @@
 *.bim
 *.fam
 *.fastq
+*.bin
 
 # General zipped files
 *.gz
