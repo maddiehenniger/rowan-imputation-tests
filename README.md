@@ -108,7 +108,7 @@ We're going to perform imputation with `IMPUTE5`. The imputation steps will have
 
 #### Chunking step
 
-For this step, we have a couple of parts. We're going to specify the reference with `--h`, the test samples with `--g`, the chromosome with `--r`, the name of the log file with `--l`, and the output chunked coordinates with `--o`. This will output a TXT file that contains 7 columns. The first column is numbered 0-n number of chunks, the second column is the chromosome, the third column and fourth column are the chromosome and range (i.e., 25:31475-5742958), the sixth column is ???, and the seventh column is ???. 
+For this step, we have a couple of parts. We're going to specify the reference with `--h`, the test samples with `--g`, the chromosome with `--r`, the name of the log file with `--l`, and the output chunked coordinates with `--o`. This will output a TXT file that contains 7 columns. The first column is numbered 0-n number of chunks, the second column is the chromosome, the third column is the buffered region, the fourth column is the imputation region, the fifth column is the length, the sixth column is the number of target arkers, and the seventh column is the number of reference markers.
 
 ```
 imp5Chunker_v1.2.0_static \
@@ -135,4 +135,41 @@ xcftools_static view \
 --maf 0.03125 \
 --log stats/xcf_log.out
 ```
+
+#### Run IMPUTE5
+
+Now we can run the actual imputation part. In order to impute using the chunked data, we're going to have to add in a few extra arguments. From the documentation: "Each chunk of imputed data is expanded by a buffer region - this helps prevent imputation quality from deteriorating near the edges of the region. Markers in the buffer region will help the inference but do not appear in the output files, and larger buffers can improve accuracy." From our chunked file we generated earlier, we have the buffered region (column 3). We also have our imputation region (column 4). IN this test run, I'm not supplying `--m`, but this would be the fine-scale recombination map for the region to be analyzed, and if not defined, a constant recombination rate is assumed.
+
+We're going to use a while loop to loop through the lines in our coordinates file. To do this, we're going to have our first line be `while IFS= read -r line; do`. Including `IFS=` prevents field splitting on the line by line basis and then the `read -r line` tells the while loop to read line by line. Each line in our file contains the imputation and buffering regions, so this is handy. The fourth column is going to be our region, so we'll first define that we want to, by line, print column 4's value. Then, we'll also do the same to store the buffer region. I'll use the region info to name the output and log files. Then, we define the reference database (formatted as XCF) with `--h`, the input phased samples with `--g`, the stored region info from our chunked text file as our new variable, `${region}`, with `--r`, the stored buffer region from our chunked text file as our new variable, `${buffer}`, with `--buffer-region`, the output file as our stored variable, `${out_file}`, with `--o`, and our log file as our stored variable, `${log_file}`, with `--l`. We specify `done` at the end to terminate the while loop, and feed in our input chunked coordinates TXT file that we generated earlier to tell the while loop what to read. Note that you can perform multi-threading also, but the authors of `IMPUTE5` state that parallelization by chunk is more efficient. We will have to test this later to see, since our run time was ~30s with the size of the data we currently have.
+
+```
+while IFS= read -r line; do
+    chr=$(echo "$line" | awk '{print $2}')
+    region=$(echo "$line" | awk '{print $4}')
+    buffer=$(echo "$line" | awk '{print $3}')
+    count=$(echo "$line" | awk '{print $1}')
+    out_file="imputation/imputed_phased_snp50_testing_animals_seq.${chr}_${count}.bcf"
+    log_file="stats/imputated_chunks_testing_animals_seq.${chr}_${count}_${region}.out"
+    ../../z_rowan_imp_pipeline_tests/3_imputation/impute5/impute5_v1.2.0/impute5_v1.2.0_static \
+    --h databases/MU_HD_only.chr25_xcf.bcf \
+    --g phasing/phased_snp50_testing_animals_seq.chr25.bcf \
+    --r ${region} \
+    --buffer-region ${buffer} \
+    --o ${out_file} \
+    --l ${log_file}
+done < imputation/phased_snp50_testing_animals_seq_chunked_coords.txt
+```
+
+#### Ligation step
+
+We now need to join the several imputed files we generated. According the the documentation: "The simplest way to ligate imputated chunks back is using `bcftools concat` providing the list of files in the right order." The thing about this bit is that it must "be in the right order". I originally had saved all the file names with the regions, but this makes generating a list "in the right order" kinda annoying. So, instead I went back and changed it to print the chromosome (because I anticipate more chromosomes in our future) and then, the first column is a count column, so it prints that also, which we can either inspect the log file or look back on our chunked coordinates TXT file if we need to reference the specific region. This essentially should print everything in order, since the chunked coordinates file is organized "in order". 
+
+```
+
+```
+
+
+
+
+
 
